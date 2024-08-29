@@ -17,3 +17,4 @@ Para entender do que se trata esse problema eu sugiro a leitura deste [blog](htt
 ## OnMounted
 
 No app.vue estamos usando o hook **OnMounted** se você quiser entender melhor o que é um hook e o funcionamento do **OnMounted** confira a [documentação oficial](https://vuejs.org/guide/essentials/lifecycle.html).
+https://github.com/profBruno-UFC-Qx/qxd0193-piw-starter-code/blob/22e56dea88322353fc5652a54879272a3220f95d/frontend/src/App.vue#L9
