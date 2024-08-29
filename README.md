@@ -4,11 +4,14 @@
 No backend nós temos o crud de usuário implementado. No entanto, para a versão atual, a exigência de autenticação para as rodas do CRUD estão desabilitadas, vide:
 https://github.com/profBruno-UFC-Qx/qxd0193-piw-starter-code/blob/5ebc7b1b1548faca78408dbd78d61a843b5bc03a/backend/src/routes/userRoutes.ts#L10
 
-No frontend, temos a tela inicial recuperando as informações de todos os usuários cadastrados e listando na tela.
+No frontend, temos a tela inicial recuperando e mostrando as informações de todos os usuários cadastrados.
 
 
 # Possíveis dúvidas ou problema
 
+## Axios
+O Axios está instalado e configurado para recuperar as informações do backend.
+https://github.com/profBruno-UFC-Qx/qxd0193-piw-starter-code/blob/ab195472185e5d27e375df5380ac82c270b14110/frontend/src/api/index.ts#L3
 
 ## CORS
 
