@@ -11,3 +11,10 @@ type Role = {
   id: number
   name: string
 }
+
+export interface ApplicationError {
+  error: {
+    name: string,
+    message: string,
+  }
+}

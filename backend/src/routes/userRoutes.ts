@@ -58,11 +58,20 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/:id', async (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
+  if (isNaN(id)) {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid Id',
+        message: 'The id must be  number'
+      }
+    })
+  }
+
   const userRepository = AppDataSource.getRepository(User)
   const user = await userRepository.findOne({
     where: {
-      id: parseInt(id)
+      id: id
     }, 
     relations: ['role']
   })
@@ -70,7 +79,6 @@ router.get('/:id', async (req, res) => {
   if(!user) {
     return res.status(404).json({
       error: {
-        status: 404,
         name: 'NotFound',
         message: 'User not found'
       }
@@ -83,15 +91,24 @@ router.get('/:id', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   const { name, username, email, password, role } = req.body
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid Id',
+        message: 'The id must be  number'
+      }
+    })
+  }
 
   const userRepository = AppDataSource.getRepository(User)
   const roleRepositoy = AppDataSource.getRepository(Role)
 
   const user = await userRepository.findOne({
     where: {
-      id: parseInt(id)
+      id: id
     }, 
     relations: ['role']
   })
@@ -99,7 +116,6 @@ router.put('/:id', async (req, res) => {
   if(!user) {
       return res.status(404).json({
         error: {
-          status: 404,
           name: 'NotFound',
           message: 'User not found'
         }
@@ -128,11 +144,20 @@ router.put('/:id', async (req, res) => {
 })
 
 router.delete('/:id', async (req, res) => {
-  const { id } = req.params
+  const id  = Number(req.params.id)
+  if (isNaN(id)) {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid Id',
+        message: 'The id must be  number'
+      }
+    })
+  }
+  
   const userRepository = AppDataSource.getRepository(User)
   const user = await userRepository.findOne({
     where: {
-      id: parseInt(id)
+      id: id
     }, 
     relations: ['role']
   })
@@ -140,7 +165,6 @@ router.delete('/:id', async (req, res) => {
   if(!user) {
     return res.status(404).json({
       error: {
-        status: 404,
         name: 'NotFound',
         message: 'User not found'
       }

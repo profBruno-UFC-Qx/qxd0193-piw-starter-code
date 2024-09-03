@@ -1,21 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { api } from './api'
-import type { User } from './types'
-
-const users = ref([] as User[])
-const erro = ref(false)
-
-onMounted(async () => {
-  try {
-    const res = await api.get('/users')
-    users.value = res.data.data
-  } catch (e) {
-    erro.value = true
-  }
-})
-</script>
-
 <template>
   <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
     <symbol id="check2" viewBox="0 0 16 16">
@@ -171,35 +153,9 @@ onMounted(async () => {
   <main>
     <div class="album py-5 bg-body-tertiary">
       <div class="container">
-        <div v-if="erro" class="alert alert-danger" role="alert">Deu erro!!!!</div>
-
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Nome</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users" :key="user.id">
-              <td>{{ user.id }}</td>
-              <td>{{ user.name }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.role.name }}</td>
-              <td>
-                <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
-                <button class="btn btn-warning"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-success"><i class="bi bi-eye"></i></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <RouterView></RouterView>
       </div>
     </div>
   </main>
+
 </template>
