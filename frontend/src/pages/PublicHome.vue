@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { api } from '@/api'
 import type { User } from '@/types'
 
@@ -11,7 +11,7 @@ const success = ref(false)
 const deleteRequested = ref(false)
 const userToRemove = ref<User>()
 
-onMounted(async () => {
+async function loadUsers() {
   try {
     const res = await api.get('/users')
     users.value = res.data.data
@@ -20,7 +20,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
 
 async function removeUser() {
   console.log(`Remover usuário ${userToRemove.value?.id}`)
@@ -46,6 +46,8 @@ function askToDelete(id: number) {
 function toogleModal() {
   deleteRequested.value = !deleteRequested.value
 }
+
+loadUsers()
 </script>
 
 <template>
@@ -84,9 +86,8 @@ function toogleModal() {
         <td>{{ user.email }}</td>
         <td>{{ user.role.name }}</td>
         <td>
-          <button @click="askToDelete(user.id)" class="btn btn-danger"><i class="bi bi-trash"></i></button>
-          <RouterLink class="btn btn-warning" :to="`/users/${user.id}`"><i class="bi bi-pencil"></i></RouterLink>
-          <button class="btn btn-success"><i class="bi bi-eye"></i></button>
+          <RouterLink class="btn btn-sm btn-info" :to="`/users/${user.id}`"><i class="bi bi-eye"></i></RouterLink>
+          <button @click="askToDelete(user.id)" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
     </tbody>
@@ -114,5 +115,9 @@ function toogleModal() {
 <style scoped>
 .modal {
   display: block;
+}
+
+td > .btn {
+  margin: 0px 5px  ;
 }
 </style>
