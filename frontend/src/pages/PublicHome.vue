@@ -1,37 +1,51 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { api } from '@/api'
-import type { User } from '@/types'
+import type { ApplicationError, User } from '@/types'
+import { useUserStore } from '@/stores/userStore';
+import { isAxiosError } from 'axios';
+import { isApplicationError } from '@/composables/useApplicationError';
 
 const users = ref([] as User[])
-const erro = ref<Error>()
+const exception = ref<ApplicationError>()
 const loading = ref(true)
 const success = ref(false)
 
 const deleteRequested = ref(false)
 const userToRemove = ref<User>()
 
+const userStore = useUserStore()
+
 async function loadUsers() {
   try {
-    const res = await api.get('/users')
+    const res = await api.get('/users', {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
+    })
     users.value = res.data.data
   } catch (e) {
-    erro.value = e as Error
+    exception.value = e as Error
   } finally {
     loading.value = false
   }
 }
 
 async function removeUser() {
-  console.log(`Remover usuário ${userToRemove.value?.id}`)
   try {
-    const res = await api.delete(`/users/${userToRemove.value?.id}`)
+    const res = await api.delete(`/users/${userToRemove.value?.id}`, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
+    })
     const removedUser: User = res.data.data
     const toRemove = users.value.findIndex(u => removedUser.id == u.id)
     users.value.splice(toRemove, 1)
     success.value = true
   } catch (e) {
-    erro.value = e as Error
+    if (isAxiosError(e) && isApplicationError(e.response?.data)) {
+      exception.value = e.response?.data
+    }
   } finally {
     toogleModal()
   }
@@ -51,14 +65,20 @@ loadUsers()
 </script>
 
 <template>
-  <div v-if="erro" class="alert alert-danger alert-dismissible" role="alert">
-    {{ erro.message }}
-    <button @click="erro=undefined" type="button" class="btn-close" aria-label="Close"></button>
+  <div v-if="exception" class="alert alert-danger alert-dismissible" role="alert">
+    {{ exception.message }}
+    <button @click="exception=undefined" type="button" class="btn-close" aria-label="Close"></button>
   </div>
 
   <div v-if="success" class="alert alert-success alert-dismissible" role="alert">
     O usuário foi removido com sucesso
     <button @click="success=false" type="button" class="btn-close" aria-label="Close"></button>
+  </div>
+
+  <div>
+    <RouterLink to="/users/new" class="btn btn-success">
+      <i class="bi bi-plus-circle"></i> Novo
+    </RouterLink>
   </div>
 
   <div v-if="loading" class="d-flex justify-content-center">

@@ -1,6 +1,7 @@
 import express from 'express'
 import userRoutes from './routes/userRoutes'
-import authRotes from './routes/authRoutes'
+import authRoutes from './routes/authRoutes'
+import roleRoutes from './routes/roleRoutes'
 import cors from "cors";
 import { AppDataSource } from './DataSource'
 
@@ -14,8 +15,9 @@ async function startServer() {
     app.use(cors())
     
     app.use(express.json())
-    app.use('/', authRotes)
+    app.use('/', authRoutes)
     app.use('/users', userRoutes)
+    app.use('/roles', roleRoutes)
     
     
     app.listen(port, () => {

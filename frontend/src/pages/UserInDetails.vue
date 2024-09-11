@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { api } from '@/api'
-import type { User, ApplicationError } from '@/types'
 import { isApplicationError } from '@/composables/useApplicationError'
+import { useUserStore } from '@/stores/userStore'
+import type { User, Role, ApplicationError } from '@/types'
 
-const user = ref({} as User)
-const errorMessage = ref<ApplicationError>()
+const user = ref({
+  role: {
+    id: 0
+  }
+} as User)
+const roles = ref([] as Role[])
+const exception = ref<ApplicationError>()
 const loading = ref(true)
 const updated = ref(false)
+const id = ref<Number>(-1)
 
 const editionMode = ref(false)
 const route = useRoute()
+const router = useRouter()
+
+const userStore = useUserStore()
 
 function toogleEdit() {
   editionMode.value = !editionMode.value
@@ -25,46 +35,110 @@ async function updateUser() {
       name: user.value.name,
       username: user.value.username,
       email: user.value.email
+    }, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
     })
     user.value = res.data.data
     updated.value = true
   } catch (e) {
     if (isAxiosError(e) && isApplicationError(e.response?.data)) {
-      errorMessage.value = e.response?.data
+      exception.value = e.response?.data
     }
   } finally {
     loading.value = false
   }
 }
 
-async function loadUser(id: number) {
+async function addUser() {
   try {
-    const res = await api.get(`/users/${id}`)
+    loading.value = true
+    const res = await api.post(`/users/`, {
+      name: user.value.name,
+      username: user.value.username,
+      email: user.value.email,
+      password: user.value.password,
+      role: user.value.role.id
+    }, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
+    })
+    user.value = res.data.data
+    updated.value = true
+    router.push('/')
+  } catch (e) {
+    if (isAxiosError(e) && isApplicationError(e.response?.data)) {
+      exception.value = e.response?.data
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadUser(id: Number) {
+  try {
+    const res = await api.get(`/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
+    })
     user.value = res.data.data
   } catch (e) {
-    console.log(e)
     if (isAxiosError(e) && isApplicationError(e.response?.data)) {
-      errorMessage.value = e.response?.data
+      exception.value = e.response?.data
     }
   } finally {
     loading.value = false
   }
 }
 
-loadUser(Number(route.params.id))
+async function loadRoles() {
+  try {
+    const res = await api.get(`/roles`, {
+      headers: {
+        Authorization: `Bearer ${userStore.jwt}`
+      }
+    })
+    roles.value = res.data.data
+  } catch (e) {
+    if (isAxiosError(e) && isApplicationError(e.response?.data)) {
+      exception.value = e.response?.data
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  id.value = Number(route.params.id)
+  if (id.value && id.value != -1) {
+    await loadUser(id.value)
+  } else {
+   editionMode.value = true
+  }
+  loadRoles()
+})
+
+
+
 </script>
 
 <template>
   <h2 class="text-center mb-4"></h2>
   <p></p>
   <div v-if="updated" class="alert alert-success" role="alert">Usuário atualizado com sucesso!</div>
-  <p v-if="errorMessage">{{ errorMessage.error.message }}</p>
-  <form v-else @submit.prevent="updateUser">
+  <div v-if="exception" class="alert alert-danger alert-dismissible" role="alert">
+    {{ exception.message }}
+    <button @click="exception=undefined" type="button" class="btn-close" aria-label="Close"></button>
+  </div>
+  <form v-else @submit.prevent="id ? updateUser() : addUser()">
     <div class="card">
       <h3 class="card-header text-center">User Information</h3>
       <div class="card-body">
         <div class="mb-3">
-          <a @click="toogleEdit" class="btn btn-outline-secondary btn-sm">
+          <a v-if="id" @click="toogleEdit" class="btn btn-outline-secondary btn-sm">
             <template v-if="editionMode">
               <i class="bi bi-lock"></i>
               Desabilitar edição
@@ -117,15 +191,14 @@ loadUser(Number(route.params.id))
         </div>
         <div class="mb-3">
           <label for="role" class="form-label">Role:</label>
-          <select v-model="user.role" class="form-select" id="role" :disabled="!editionMode">
-            <option>admin</option>
-            <option>User</option>
-            <option>Guest</option>
+          <select v-model="user.role.id" class="form-select" id="role" :disabled="!editionMode">
+            <option v-for="role in roles" :key="role.id" :selected="user && user.role.id == role.id" :value="role.id">{{ role.name }}</option>
           </select>
         </div>
       </div>
-      <div v-if="editionMode" class="card-footer text-center mt-3">
-        <input type="submit" class="btn btn-primary" value="Atualizar" />
+      <div class="card-footer text-center mt-3">
+        <input v-if="editionMode && id" type="submit" class="btn btn-primary" value="Atualizar" />
+        <input v-else-if="!id" type="submit" class="btn btn-secondary" value="Adicionar" />
       </div>
     </div>
   </form>

@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
 
 const router = Router()
 
-//router.use(authenticateJWT)
+router.use(authenticateJWT)
 
 
 router.post('/', async (req, res) => {
@@ -26,27 +26,32 @@ router.post('/', async (req, res) => {
   const userRepository = AppDataSource.getRepository(User)
   const roleRepositoy = AppDataSource.getRepository(Role)
 
-  let roleInDB = await roleRepositoy.findOne({ where: { name: role }})
+  let roleInDB = await roleRepositoy.findOne({ where: { id: role }})
 
-  if(!roleInDB) {
-    roleInDB = roleRepositoy.create({ name: role })
-    await roleRepositoy.save(roleInDB)
+  if(roleInDB) {
+    const hashedPassword = bcrypt.hashSync(password, 10)
+  
+    const newUser: User = userRepository.create({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+      role: roleInDB
+    })
+  
+    await userRepository.save(newUser)
+    res.status(200).json({
+      data: newUser
+    })
+  } else {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid role',
+        message: 'You should select a valid role'
+      }
+    })
   }
 
-  const hashedPassword = bcrypt.hashSync(password, 10)
-
-  const newUser: User = userRepository.create({
-    name,
-    username,
-    email,
-    password: hashedPassword,
-    role: roleInDB
-  })
-
-  await userRepository.save(newUser)
-  res.status(200).json({
-    data: newUser
-  })
 })
 
 router.get('/', async (req, res) => {
@@ -122,25 +127,27 @@ router.put('/:id', async (req, res) => {
       })
   }
 
-  let roleInDB = await roleRepositoy.findOne({ where: { name: role }})
+  let roleInDB = await roleRepositoy.findOne({ where: { id: role }})
 
-  if(!roleInDB) {
-    roleInDB = roleRepositoy.create({ name: role })
-    await roleRepositoy.save(roleInDB)
+  if(roleInDB) {
+    user.name = name || user.name
+    user.username = username || user.username
+    user.email = email || user.email
+    user.password = password || user.password
+    user.role = roleInDB
+  
+    userRepository.save(user)
+    res.status(200).json({
+      data: user
+    }) 
+  } else {
+    return res.status(400).json({
+      error: {
+        name: 'Invalid role',
+        message: 'You should select a valid role'
+      }
+    })
   }
-  
-
-  
-  user.name = name || user.name
-  user.username = username || user.username
-  user.email = email || user.email
-  user.password = password || user.password
-  user.role = roleInDB
-
-  userRepository.save(user)
-  res.status(200).json({
-    data: user
-  })
 })
 
 router.delete('/:id', async (req, res) => {

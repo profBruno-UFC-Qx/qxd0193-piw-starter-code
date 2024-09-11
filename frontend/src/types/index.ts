@@ -7,14 +7,12 @@ export type User = {
   role: Role
 }
 
-type Role = {
+export type Role = {
   id: number
   name: string
 }
 
 export interface ApplicationError {
-  error: {
-    name: string,
-    message: string,
-  }
+  name: string,
+  message: string,
 }

@@ -10,8 +10,12 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body
 
   const userRepository = AppDataSource.getRepository(User)
-  const user = await userRepository.findOneBy({ username })
-
+  const user = await userRepository.findOne({
+    where: {
+      username: username
+    }, 
+    relations: ['role']
+  })
   if(user && bcrypt.compareSync(password, user.password)) {
     const token = jwt.sign({
       userId: user.id,
@@ -19,8 +23,16 @@ router.post('/login', async (req, res) => {
     }, 'meu_segredo_mais_importante', { expiresIn: '1h'})
 
     res.status(200).json({ data: {
-      username: user.username,
-      email: username.email,
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: username.email,
+        role: {
+          id: user.role.id,
+          name: user.role.name
+        }
+      },
       jwt: token
     }})
   } else {
